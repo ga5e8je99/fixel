@@ -9,34 +9,8 @@ const Home = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    // Fetch services from API
-    fetch("https://fixly-umber.vercel.app/fixly/api/product/getall", {
-      method: "GET",
-      redirect: "follow",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch services");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.success && Array.isArray(data.data)) {
-          // Map API response to the structure expected by the UI
-          setServices(data.data);
-        } else {
-          console.error("Unexpected response format:", data);
-          setServices([]);
-        }
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching services:", error);
-        setError(error.message);
-        setIsLoading(false);
-      });
-  }, []);
+
+
 
   const HeroSlider = () => {
     const slides = [
