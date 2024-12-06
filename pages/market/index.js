@@ -1,174 +1,152 @@
-import { FaShoppingCart } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import API_BASE_URL from "@/lib/config";
-//
 
-//
-const Market = () => {
-  const [products, setProducts] = useState([]);
+const Home = () => {
+  const [services, setServices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // useEffect(() => {
-  //   fetch()
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       // Assuming 'data.data' contains the list of products
-  //       setProducts(data.data);
-  //     })
-  //     .catch((error) => console.error("Error fetching products:", error));
-  // }, []);
+  useEffect(() => {
+    // Fetch services from the API
+    fetch("https://fixly-umber.vercel.app/fixly/api/product/getall", {
+      method: "GET",
+      redirect: "follow",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch services");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.data && Array.isArray(data.data)) {
+          setServices(data.data); // Use the API response to populate services
+        } else {
+          setServices([]);
+        }
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching services:", error);
+        setError(error.message);
+        setIsLoading(false);
+      });
+  }, []);
 
-  return (
-    <>
-      <div className="bg-gray-50 flex flex-col">
-        {/* Hero Section */}
-        <div className="relative bg-[url('https://img.freepik.com/free-photo/top-view-steel-hammer-with-other-construction-elements-tools_23-2150576383.jpg?t=st=1733424446~exp=1733428046~hmac=49146cf41dd440fc17b9d68020ca73beac168412556cc26645641dbe08da625b&w=996')] bg-cover bg-center h-[400px]">
-          {/* Background Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+  const HeroSlider = () => {
+    const slides = services.map((service, index) => ({
+      image: service.image[0], // Assuming `image` is an array
+      title: service.title,
+      description: service.desc,
+    }));
 
-          {/* Hero Content */}
-          <div className="relative container mx-auto px-4 h-full flex items-center justify-center">
-            <div
-              className="max-w-lg text-white space-y-6 flex flex-col md:items-start md:text-start items-center text-center"
-              style={{
-                position: "relative",
-                textAlign: "center",
-              }}
-            >
-              <h1
-                className="md:text-5xl text-4xl font-bold mb-0"
-                style={{
-                  textAlign: "center",
-                  marginLeft: "93px",
-                }}
-              >
-                Our Market
-              </h1>
-              <p>
-                "Discover a variety of products tailored to meet your every need."
+    const [currentSlide, setCurrentSlide] = useState(0);
+
+    const nextSlide = () =>
+      setCurrentSlide((currentSlide + 1) % slides.length);
+
+    const prevSlide = () =>
+      setCurrentSlide((currentSlide - 1 + slides.length) % slides.length);
+
+    if (isLoading || slides.length === 0) {
+      return <div>Loading Slider...</div>;
+    }
+
+    return (
+      <div className="relative w-full h-[600px] bg-gray-100">
+        {/* Slides */}
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              index === currentSlide ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              backgroundImage: `url(${slide.image})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }}
+          >
+            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+            <div className="container mx-auto h-full flex flex-col justify-center items-center text-white space-y-6 text-center px-4">
+              <h1 className="text-4xl md:text-5xl font-bold">{slide.title}</h1>
+              <p className="text-lg md:text-xl">{slide.description}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* Navigation Buttons */}
+        <button
+          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white text-black rounded-full p-3 shadow-lg hover:bg-gray-200 transition"
+          onClick={prevSlide}
+        >
+          &#8592;
+        </button>
+        <button
+          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white text-black rounded-full p-3 shadow-lg hover:bg-gray-200 transition"
+          onClick={nextSlide}
+        >
+          &#8594;
+        </button>
+      </div>
+    );
+  };
+
+  const renderServices = () => {
+    if (isLoading) {
+      return <div>Loading services...</div>;
+    }
+
+    if (error) {
+      return <div>Error: {error}</div>;
+    }
+
+    if (services.length === 0) {
+      return <div>No services available.</div>;
+    }
+
+    return (
+      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {services.map((service) => (
+          <div
+            key={service._id}
+            className="bg-white shadow-lg rounded-lg overflow-hidden"
+          >
+            <img
+              src={service.image[0]}
+              alt={service.title}
+              className="w-full h-40 object-cover"
+            />
+            <div className="p-4">
+              <h3 className="text-xl font-bold text-gray-800">{service.title}</h3>
+              <p className="text-gray-600">{service.desc}</p>
+              <p className="text-green-500 font-semibold mt-2">
+                Price: {service.price}
+              </p>
+              <p className="text-yellow-500 font-semibold mt-1">
+                Points: {service.point}
               </p>
             </div>
           </div>
-        </div>
+        ))}
       </div>
-      <div className="min-h-screen bg-gray-50 py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-           
-              <a
-                href={"/market/" + 0}
-                key={0}
-                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center transform transition duration-300 hover:scale-105 hover:shadow-2xl"
-              >
-                <img
-                  src={'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJb8Nku3zGH5OhSYUu9mEGff4HVdaGGQ7_Pg&s'}
-                  alt={"product.name"}
-                  className="h-32 object-cover rounded-md mb-4"
-                />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {"product.name"}
-                </h3>
-                <p className="text-gray-500 mb-2 text-center px-3">
-                  {"product.description"}
-                </p>
-                <p className="text-[#1b224f] font-bold text-lg">
-                  {"500"} $
-                </p>
-                <button
-                  className="mt-4 flex items-center bg-[#1b224f] text-white px-4 py-2 rounded-md hover:bg-white hover:text-[#1b224f] transition"
-                  style={{
-                    transition: "all 0.3s ease",
-                    transform: "translateY(0)",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.transform = "translateY(-5px)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.transform = "translateY(0)")
-                  }
-                >
-                  <FaShoppingCart className="mr-2" />
-                  View Product
-                </button>
-              </a>
-            
-              <a
-                href={"/market/" + 0}
-                key={0}
-                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center transform transition duration-300 hover:scale-105 hover:shadow-2xl"
-              >
-                <img
-                  src={'https://www.jharlen.com/images/product/large/11588.jpg'}
-                  alt={"product.name"}
-                  className="h-32 object-cover rounded-md mb-4"
-                />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {"product.name"}
-                </h3>
-                <p className="text-gray-500 mb-2 text-center px-3">
-                  {"product.description"}
-                </p>
-                <p className="text-[#1b224f] font-bold text-lg">
-                  {"500"} $
-                </p>
-                <button
-                  className="mt-4 flex items-center bg-[#1b224f] text-white px-4 py-2 rounded-md hover:bg-white hover:text-[#1b224f] transition"
-                  style={{
-                    transition: "all 0.3s ease",
-                    transform: "translateY(0)",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.transform = "translateY(-5px)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.transform = "translateY(0)")
-                  }
-                >
-                  <FaShoppingCart className="mr-2" />
-                  View Product
-                </button>
-              </a>
-              <a
-                href={"/market/" + 0}
-                key={0}
-                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center transform transition duration-300 hover:scale-105 hover:shadow-2xl"
-              >
-                <img
-                  src={'https://www.zestdent.com/media/catalog/product/0/9/09599-m_locator_fixed_seating_and_removal_tool.png?quality=100&bg-color=255,255,255&fit=bounds&height=1000&width=1250&canvas=1250:1000&format=jpeg'}
-                  alt={"product.name"}
-                  className="h-32 object-cover rounded-md mb-4"
-                />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {"product.name"}
-                </h3>
-                <p className="text-gray-500 mb-2 text-center px-3">
-                  {"product.description"}
-                </p>
-                <p className="text-[#1b224f] font-bold text-lg">
-                  {"500"} $
-                </p>
-                <button
-                  className="mt-4 flex items-center bg-[#1b224f] text-white px-4 py-2 rounded-md hover:bg-white hover:text-[#1b224f] transition"
-                  style={{
-                    transition: "all 0.3s ease",
-                    transform: "translateY(0)",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.transform = "translateY(-5px)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.transform = "translateY(0)")
-                  }
-                >
-                  <FaShoppingCart className="mr-2" />
-                  View Product
-                </button>
-              </a>
-              
-          </div>
-        </div>
+    );
+  };
+
+  return (
+    <div className="bg-gray-50">
+      {/* Hero Slider */}
+      <HeroSlider />
+
+      {/* Services Section */}
+      <div className="py-12">
+        <h2 className="text-center text-3xl font-bold text-gray-800 mb-6">
+          Our Services
+        </h2>
+        {renderServices()}
       </div>
-    </>
+    </div>
   );
 };
 
-export default Market;
+export default Home;
